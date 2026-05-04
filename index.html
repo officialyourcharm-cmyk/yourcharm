@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YourCharm — Custom Italian Charm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green: #3A7D44; --dark-green: #256032; --light-green: #EAF3EC;
+    --pink: #F7C5D5; --light-pink: #FDF0F4; --cream: #FAF6EE;
+    --dark: #2D2D2D; --gray: #888; --light-gray: #F5F5F5;
+    --silver: #D8D8DC; --silver-dark: #A8A8B0;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'Sarabun', system-ui, sans-serif;
+  }
+  body { font-family: var(--sans); background: var(--cream); color: var(--dark); line-height: 1.6; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--green); color: white; padding: 16px 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: sticky; top: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  header .brand-link { color: white; text-decoration: none; }
+  header .brand { font-family: var(--serif); font-size: 24px; font-weight: 700; font-style: italic; }
+  header .tag { font-size: 10px; color: var(--pink); letter-spacing: 3px; margin-top: 1px; }
+  .menu-btn {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: white; width: 40px; height: 40px; border-radius: 50%;
+    font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .menu-btn:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── SIDE MENU (drawer) ── */
+  .menu-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 200;
+  }
+  .menu-overlay.show { opacity: 1; pointer-events: auto; }
+  .side-menu {
+    position: fixed; top: 0; right: -320px; width: 300px; height: 100vh;
+    background: white; box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    transition: right 0.3s ease; z-index: 201;
+    display: flex; flex-direction: column; padding: 24px;
+  }
+  .side-menu.show { right: 0; }
+  .menu-close {
+    background: none; border: none; font-size: 22px; cursor: pointer;
+    align-self: flex-end; color: var(--gray); padding: 4px 10px;
+  }
+  .side-menu .menu-brand {
+    font-family: var(--serif); font-size: 28px; font-style: italic;
+    color: var(--green); font-weight: 700; margin-bottom: 8px;
+  }
+  .side-menu .menu-tag { font-size: 10px; color: var(--gray); letter-spacing: 2px; margin-bottom: 28px; }
+  .menu-nav { display: flex; flex-direction: column; gap: 4px; }
+  .menu-item {
+    text-align: left; padding: 14px 16px; background: transparent;
+    border: none; border-radius: 10px; cursor: pointer; font-family: inherit;
+    font-size: 15px; color: var(--dark); transition: background 0.15s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .menu-item:hover { background: var(--light-green); }
+  .menu-item.active { background: var(--green); color: white; }
+  .menu-item .icon { font-size: 18px; width: 24px; text-align: center; }
+  .menu-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid #eee; font-size: 11px; color: var(--gray); text-align: center; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ═══════ WELCOME PAGE ═══════ */
+  .hero {
+    background: linear-gradient(135deg, var(--green) 0%, var(--dark-green) 100%);
+    color: white; text-align: center; padding: 70px 20px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before, .hero::after {
+    content: ''; position: absolute; border-radius: 50%;
+    background: rgba(247,197,213,0.15);
+  }
+  .hero::before { width: 250px; height: 250px; top: -80px; right: -60px; }
+  .hero::after { width: 180px; height: 180px; bottom: -50px; left: -40px; }
+  .hero-content { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+  .hero h1 { font-family: var(--serif); font-style: italic; font-size: 56px; font-weight: 700; margin-bottom: 8px; line-height: 1.1; }
+  .hero .hero-tag { font-size: 13px; color: var(--pink); letter-spacing: 5px; margin-bottom: 24px; }
+  .hero .hero-sub { font-size: 16px; opacity: 0.9; margin-bottom: 36px; padding: 0 20px; }
+  .cta-btn {
+    display: inline-block; background: var(--pink); color: var(--dark-green);
+    padding: 16px 36px; border-radius: 50px; font-size: 16px; font-weight: 700;
+    border: none; cursor: pointer; font-family: inherit;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15); transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+
+  /* Announcement banner */
+  .announce {
+    background: var(--light-pink); border-bottom: 1px solid var(--pink);
+    padding: 14px 20px; text-align: center; font-size: 14px; color: #c0607a;
+  }
+  .announce strong { color: var(--dark-green); }
+
+  /* Section */
+  .section { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
+  .section-label { font-size: 11px; color: var(--green); letter-spacing: 4px; text-align: center; margin-bottom: 8px; font-weight: 600; }
+  .section-title { font-family: var(--serif); font-size: 32px; font-weight: 700; color: var(--dark); text-align: center; margin-bottom: 12px; }
+  .section-desc { color: var(--gray); text-align: center; max-width: 600px; margin: 0 auto 40px; font-size: 14px; }
+
+  /* Brand Story */
+  .story-card {
+    background: white; border-radius: 20px; padding: 40px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.05); max-width: 700px; margin: 0 auto;
+    text-align: center; position: relative;
+  }
+  .story-card::before {
+    content: '"'; position: absolute; top: 10px; left: 24px;
+    font-family: var(--serif); font-size: 80px; color: var(--light-green); line-height: 1;
+  }
+  .story-text { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--dark); line-height: 1.8; margin-bottom: 16px; position: relative; z-index: 1; }
+  .story-sig { font-size: 13px; color: var(--green); letter-spacing: 2px; }
+
+  /* Promo cards */
+  .promo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .promo-card {
+    background: white; border-radius: 16px; padding: 22px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05); text-align: center;
+    border: 2px solid transparent; transition: transform 0.2s, border-color 0.2s;
+  }
+  .promo-card:hover { transform: translateY(-4px); border-color: var(--pink); }
+  .promo-tag {
+    display: inline-block; background: var(--green); color: white;
+    padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-bottom: 12px;
+  }
+  .promo-name { font-family: var(--serif); font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+  .promo-desc { font-size: 12px; color: var(--gray); margin-bottom: 12px; min-height: 36px; }
+  .promo-price { font-size: 24px; font-weight: 700; color: var(--green); }
+  .promo-old { font-size: 13px; color: #c0607a; text-decoration: line-through; margin-left: 6px; }
+  .promo-banner {
+    grid-column: 1 / -1; background: linear-gradient(135deg, var(--pink), #ffb8d0);
+    color: var(--dark-green); border-radius: 16px; padding: 24px; text-align: center;
+    margin-top: 8px;
+  }
+  .promo-banner h3 { font-family: var(--serif); font-size: 28px; font-weight: 700; }
+  .promo-banner p { font-size: 14px; margin-top: 4px; }
+
+  /* Gallery */
+  .gallery {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; margin-top: 20px;
+  }
+  .gallery-item {
+    aspect-ratio: 1; border-radius: 14px; overflow: hidden;
+    background: linear-gradient(135deg, var(--light-pink), var(--light-green));
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.2s;
+    position: relative;
+  }
+  .gallery-item:hover { transform: scale(1.02); }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-item.placeholder { color: var(--gray); font-size: 13px; flex-direction: column; gap: 6px; padding: 20px; text-align: center; }
+  .gallery-item.placeholder .ph-icon { font-size: 36px; }
+
+  /* Reviews */
+  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .review-card {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05); border-left: 3px solid var(--pink);
+  }
+  .review-stars { color: #f1c40f; margin-bottom: 8px; font-size: 14px; }
+  .review-text { font-size: 14px; color: var(--dark); line-height: 1.7; margin-bottom: 14px; font-style: italic; }
+  .review-author { font-size: 12px; color: var(--gray); }
+  .review-author strong { color: var(--green); }
+
+  /* Social */
+  .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; max-width: 700px; margin: 0 auto; }
+  .social-card {
+    background: white; border-radius: 14px; padding: 18px;
+    text-align: center; text-decoration: none; color: var(--dark);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04); transition: transform 0.15s;
+    border: 1.5px solid transparent;
+  }
+  .social-card:hover { transform: translateY(-3px); border-color: var(--green); }
+  .social-icon { font-size: 28px; margin-bottom: 8px; }
+  .social-name { font-size: 12px; font-weight: 600; color: var(--gray); margin-bottom: 2px; }
+  .social-handle { font-size: 13px; color: var(--green); font-weight: 600; }
+
+  /* Footer */
+  footer {
+    background: var(--dark-green); color: white; text-align: center;
+    padding: 40px 20px; margin-top: 40px;
+  }
+  footer .foot-brand { font-family: var(--serif); font-style: italic; font-size: 22px; margin-bottom: 6px; }
+  footer .foot-tag { font-size: 11px; color: var(--pink); letter-spacing: 3px; margin-bottom: 14px; }
+  footer .foot-copy { font-size: 11px; opacity: 0.7; }
+
+  /* ═══════ BUILDER PAGE ═══════ */
+  .container { max-width: 1400px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+  @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
+  .loading-screen { text-align: center; padding: 80px 20px; background: white; border-radius: 16px; }
+  .loading-screen .spinner { width: 50px; height: 50px; border: 4px solid var(--light-green); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-screen p { color: var(--gray); font-size: 14px; }
+  .loading-screen.error { color: #c0607a; }
+  .preview-area { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+  .preview-title { font-size: 20px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+  .preview-subtitle { font-size: 13px; color: var(--gray); margin-bottom: 20px; }
+  .builder-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap; }
+  .refresh-mini {
+    background: var(--light-green); border: none; color: var(--dark-green);
+    padding: 7px 12px; border-radius: 7px; font-family: inherit; font-size: 12px; cursor: pointer;
+  }
+  .refresh-mini.loading { opacity: 0.6; }
+  .size-selector { background: var(--light-green); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px; }
+  .size-selector label { display: block; font-size: 12px; font-weight: 600; color: var(--dark-green); margin-bottom: 8px; }
+  .size-selector select { width: 100%; padding: 10px 12px; border: 1px solid #c8e0cc; border-radius: 8px; background: white; font-size: 14px; color: var(--dark); cursor: pointer; font-family: inherit; }
+  .bracelet-wrapper { background: linear-gradient(135deg,#fafafa 0%,#f0f0f0 100%); border-radius: 12px; padding: 28px 16px; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 16px; overflow-x: auto; overflow-y: hidden; }
+  .bracelet { display: flex; flex-wrap: nowrap; justify-content: flex-start; gap: 1px; padding: 14px 8px; position: relative; width: max-content; min-width: 100%; }
+  .bracelet::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg,transparent,var(--silver-dark) 4%,var(--silver-dark) 96%,transparent); z-index: 0; }
+  .charm-slot { width: 38px; height: 50px; flex-shrink: 0; background: linear-gradient(135deg,#e8e8ec 0%,#c0c0c8 50%,#e8e8ec 100%); border: 1px solid var(--silver-dark); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; z-index: 1; text-shadow: 0 1px 1px rgba(0,0,0,0.3); }
+  .charm-slot:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+  .charm-slot.has-charm { background: var(--charm-bg, var(--green)); border-color: var(--charm-border, var(--dark-green)); font-size: 11px; color: white; font-weight: 600; }
+  .charm-slot .remove-btn { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; background: #c0607a; color: white; border-radius: 50%; font-size: 11px; line-height: 16px; text-align: center; cursor: pointer; display: none; border: 1px solid white; }
+  .charm-slot.has-charm:hover .remove-btn { display: block; }
+  .slot-count { text-align: center; color: var(--gray); font-size: 12px; margin-top: 8px; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { padding: 10px 18px; border: none; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.1s; }
+  .btn:active { transform: scale(0.97); }
+  .btn-secondary { background: var(--light-green); color: var(--dark-green); }
+  .btn-secondary:hover { opacity: 0.85; }
+  .btn-clear { background: #fdebef; color: #c0607a; }
+  .library { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); height: fit-content; position: sticky; top: 80px; }
+  .library h3 { font-size: 16px; font-weight: 700; color: var(--green); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .library h3 .count { font-size: 11px; color: var(--gray); font-weight: 400; }
+  .search-box { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; margin-bottom: 12px; font-family: inherit; }
+  .search-box:focus { outline: none; border-color: var(--green); }
+  .filter-toggle { display: flex; gap: 6px; margin-bottom: 10px; font-size: 12px; }
+  .filter-toggle label { display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--gray); }
+  .categories { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px; }
+  .cat-tag { padding: 5px 11px; border-radius: 14px; background: var(--light-gray); color: var(--dark); font-size: 11px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
+  .cat-tag:hover { background: var(--light-green); }
+  .cat-tag.active { background: var(--green); color: white; border-color: var(--green); }
+  .charm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; padding: 4px; }
+  .charm-item { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: var(--light-gray); border: 1.5px solid transparent; font-size: 10px; text-align: center; padding: 4px; transition: all 0.15s; user-select: none; position: relative; }
+  .charm-item:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.1); border-color: var(--green); }
+  .charm-item .icon { font-size: 20px; margin-bottom: 2px; line-height: 1; }
+  .charm-item .name { font-size: 9px; color: var(--dark); line-height: 1.2; overflow: hidden; }
+  .charm-item .price { position: absolute; bottom: 1px; right: 2px; font-size: 8px; color: var(--green); background: white; padding: 1px 4px; border-radius: 6px; font-weight: 600; }
+  .charm-item.out-of-stock { cursor: not-allowed; opacity: 0.45; filter: grayscale(80%); }
+  .charm-item.out-of-stock:hover { transform: none; box-shadow: none; border-color: transparent; }
+  .charm-item.out-of-stock::after { content: 'หมด'; position: absolute; top: 4px; left: 4px; background: #c0607a; color: white; font-size: 8px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
+  .charm-item.out-of-stock .icon { text-decoration: line-through; text-decoration-color: rgba(192, 96, 122, 0.6); }
+  .summary { background: var(--light-green); border-radius: 12px; padding: 14px 16px; margin-top: 16px; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: var(--dark); }
+  .summary-row.total { border-top: 1px dashed #c8e0cc; margin-top: 8px; padding-top: 8px; font-size: 16px; font-weight: 700; color: var(--dark-green); }
+  .btn-order { width: 100%; padding: 14px; background: var(--green); color: white; border: none; border-radius: 10px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px; transition: background 0.15s; }
+  .btn-order:hover { background: var(--dark-green); }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-bg.show { display: flex; }
+  .modal { background: white; border-radius: 14px; padding: 24px; max-width: 420px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .modal h3 { color: var(--green); margin-bottom: 12px; font-size: 18px; }
+  .modal-summary { background: var(--light-green); padding: 14px; border-radius: 8px; font-size: 13px; line-height: 1.7; margin-bottom: 14px; white-space: pre-wrap; }
+  .modal-actions { display: flex; gap: 8px; }
+  .modal-actions .btn { flex: 1; }
+  .btn-line { background: #06C755; color: white; }
+  .modal .note { font-size: 11px; color: var(--gray); margin-top: 8px; line-height: 1.5; }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--dark-green); color: white; padding: 10px 20px; border-radius: 24px; font-size: 13px; transition: transform 0.3s; z-index: 1001; max-width: 90%; text-align: center; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .helper { font-size: 11px; color: var(--gray); text-align: center; margin-top: 10px; line-height: 1.5; }
+  .selected-charm-bar { background: var(--light-pink); padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; align-items: center; gap: 10px; }
+  .selected-charm-bar.show { display: flex; }
+  .selected-charm-bar .preview { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; }
+  .selected-charm-bar .text { flex: 1; color: var(--dark); }
+  .selected-charm-bar .text strong { color: #c0607a; }
+  .selected-charm-bar .cancel { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit; }
+
+  /* Watch warning banner */
+  .watch-warning {
+    background: #FFF4E0; border: 1px solid #F1C40F; color: #8A6000;
+    border-radius: 10px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: 12px; display: none;
+  }
+  .watch-warning.show { display: block; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 40px; }
+    .section-title { font-size: 26px; }
+    .section { padding: 40px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="brand-link" onclick="showPage('welcome'); return false;">
+    <div class="brand">YourCharm</div>
+    <div class="tag">G O O D   T H I N G S   A R E   C O M I N G</div>
+  </a>
+  <button class="menu-btn" onclick="toggleMenu()">☰</button>
+</header>
+
+<!-- Side Menu -->
+<div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+<aside class="side-menu" id="sideMenu">
+  <button class="menu-close" onclick="toggleMenu()">×</button>
+  <div class="menu-brand">YourCharm</div>
+  <div class="menu-tag">G O O D   T H I N G S</div>
+  <nav class="menu-nav">
+    <button class="menu-item active" data-page="welcome" onclick="showPage('welcome')">
+      <span class="icon">🏠</span> หน้าหลัก
+    </button>
+    <button class="menu-item" data-page="builder" onclick="showPage('builder')">
+      <span class="icon">🎀</span> ออกแบบสร้อย
+    </button>
+    <button class="menu-item" onclick="document.getElementById('story').scrollIntoView({behavior:'smooth'}); toggleMenu();">
+      <span class="icon">📖</span> เรื่องราวของเรา
+    </button>
+    <button class="menu-item" onclick="document.getElementById('reviews').scrollIntoView({behavior:'smooth'}); toggleMenu();">
+      <span class="icon">⭐</span> รีวิวลูกค้า
+    </button>
+    <button class="menu-item" onclick="document.getElementById('social').scrollIntoView({behavior:'smooth'}); toggleMenu();">
+      <span class="icon">📱</span> ติดต่อเรา
+    </button>
+  </nav>
+  <div class="menu-footer">© 2026 YourCharm</div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════ WELCOME PAGE ═══════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="page active" id="page-welcome">
+
+  <div class="announce">
+    📢 <strong>EVENT 8-10 พ.ค.</strong> ที่ลิโด้ สยาม — มาเลือกสินค้าด้วยกันน้า 🍀
+  </div>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>YourCharm</h1>
+      <div class="hero-tag">G O O D   T H I N G S   A R E   C O M I N G</div>
+      <p class="hero-sub">เครื่องประดับที่มีชิ้นเดียวในโลก เพราะคุณออกแบบมันเอง 🍀<br>
+      เลือกชาร์มกว่า 1,000 ลายมาประกอบเป็นสร้อยของคุณเอง</p>
+      <button class="cta-btn" onclick="showPage('builder')">
+        ✨ เริ่มออกแบบสร้อย
+      </button>
+    </div>
+  </section>
+
+  <!-- Brand Story -->
+  <section class="section" id="story">
+    <div class="section-label">O U R   S T O R Y</div>
+    <h2 class="section-title">เรื่องราวของเรา</h2>
+    <div class="story-card">
+      <p class="story-text">เริ่มจากความรักในการสุ่ม ความตื่นเต้นของการค้นพบ และความอยากให้ทุกคนมีเครื่องประดับที่เป็นตัวเองจริงๆ นั่นคือที่มาของ YourCharm — ร้านที่ให้คุณออกแบบเองทุกชิ้น จนได้ของที่มีชิ้นเดียวในโลก</p>
+      <div class="story-sig">— YourCharm —</div>
+    </div>
+  </section>
+
+  <!-- Promotions -->
+  <section class="section" id="promo" style="background:white; max-width:none;">
+    <div style="max-width:1100px; margin:0 auto;">
+      <div class="section-label">D I Y   C H A R M</div>
+      <h2 class="section-title">เซ็ตโปรโมชั่น</h2>
+      <p class="section-desc">เลือกเซ็ตที่ใช่สำหรับคุณ ในราคาพิเศษ</p>
+
+      <div class="promo-grid">
+        <div class="promo-card">
+          <div class="promo-tag">SET A</div>
+          <div class="promo-name">Key Chain</div>
+          <div class="promo-desc">เลือกชาร์ม 4 ชิ้น + ตัวต่อพวงกุญแจ</div>
+          <div><span class="promo-price">299.-</span><span class="promo-old">390.-</span></div>
+        </div>
+        <div class="promo-card">
+          <div class="promo-tag">SET B</div>
+          <div class="promo-name">กำไล 6 ชิ้น</div>
+          <div class="promo-desc">เลือกชาร์ม 6 ชิ้น + ชาร์มเรียบตามขนาดข้อมือ</div>
+          <div><span class="promo-price">459.-</span><span class="promo-old">590.-</span></div>
+        </div>
+        <div class="promo-card">
+          <div class="promo-tag">SET C</div>
+          <div class="promo-name">กำไลไม่จำกัด</div>
+          <div class="promo-desc">เลือกชาร์มได้ไม่จำกัดลายตามขนาดข้อมือ</div>
+          <div><span class="promo-price">699.-</span><span class="promo-old">790.-</span></div>
+        </div>
+        <div class="promo-card">
+          <div class="promo-tag">SET D</div>
+          <div class="promo-name">นาฬิกา</div>
+          <div class="promo-desc">เลือกชาร์มไม่จำกัด + หน้าปัด 1 ชิ้น</div>
+          <div><span class="promo-price">999.-</span><span class="promo-old">1290.-</span></div>
+        </div>
+
+        <div class="promo-banner">
+          <h3>🎁 2 FREE 1 — เฉพาะที่ AT FIRST</h3>
+          <p>เลือก SET B / C / D ครบ 2 เซ็ตขึ้นไป (คละได้) <strong>รับฟรี! พวงกุญแจ 1 ชิ้น</strong> มูลค่า 299.-</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="section" id="gallery">
+    <div class="section-label">G A L L E R Y</div>
+    <h2 class="section-title">ผลงานของเรา</h2>
+    <p class="section-desc">ตัวอย่างชิ้นงานที่ลูกค้าออกแบบเอง</p>
+    <div class="gallery">
+      <!-- ⚠️ ลูกหว้า: เปลี่ยนรูปจริงโดยใส่ <img src="ชื่อไฟล์รูป.jpg"> ใน gallery-item แต่ละช่องค่ะ -->
+      <div class="gallery-item placeholder"><div class="ph-icon">📸</div>รูปสร้อย Coquette<br><small>(ใส่รูปจริงที่นี่)</small></div>
+      <div class="gallery-item placeholder"><div class="ph-icon">✨</div>รูปสร้อย Sparkle<br><small>(ใส่รูปจริงที่นี่)</small></div>
+      <div class="gallery-item placeholder"><div class="ph-icon">🌙</div>รูปสร้อย Mystical<br><small>(ใส่รูปจริงที่นี่)</small></div>
+      <div class="gallery-item placeholder"><div class="ph-icon">⛓️</div>รูปสร้อย Minimal<br><small>(ใส่รูปจริงที่นี่)</small></div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="section" id="reviews" style="background:white; max-width:none;">
+    <div style="max-width:1100px; margin:0 auto;">
+      <div class="section-label">R E V I E W S</div>
+      <h2 class="section-title">รีวิวจากลูกค้า</h2>
+      <p class="section-desc">เสียงตอบรับจากลูกค้าที่ใช้ YourCharm จริง</p>
+      <!-- ⚠️ ลูกหว้า: เปลี่ยนเป็นรีวิวจริงโดยแก้ข้อความและชื่อในแต่ละ review-card ค่ะ -->
+      <div class="reviews-grid">
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"สวยมากเลยค่ะ! ออกแบบเองได้ตามใจชอบ น่ารักทุกชิ้น แนะนำเลยค่ะ"</p>
+          <div class="review-author"><strong>คุณ A</strong> · ลูกค้าทาง Shopee</div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"ซื้อเป็นของขวัญวันเกิดเพื่อน เพื่อนชอบมาก รู้สึกพิเศษมากๆ ค่ะ"</p>
+          <div class="review-author"><strong>คุณ B</strong> · ลูกค้าทาง LINE</div>
+        </div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p class="review-text">"แอดมินใจดีมาก ช่วยแนะนำดี ของส่งไว สวยจริง คุ้มค่ามากเลยค่ะ"</p>
+          <div class="review-author"><strong>คุณ C</strong> · ลูกค้าหน้าบูธ</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social -->
+  <section class="section" id="social">
+    <div class="section-label">F O L L O W   U S</div>
+    <h2 class="section-title">ติดตามเราได้ที่</h2>
+    <p class="section-desc">ช่องทางติดต่อและสั่งซื้อทุกแพลตฟอร์ม</p>
+    <div class="social-grid">
+      <a href="https://shopee.co.th/yourcharm.th" target="_blank" class="social-card">
+        <div class="social-icon">🛍️</div>
+        <div class="social-name">SHOPEE</div>
+        <div class="social-handle">Yourcharm.TH</div>
+      </a>
+      <a href="https://www.tiktok.com/@yourcharm.th" target="_blank" class="social-card">
+        <div class="social-icon">🎵</div>
+        <div class="social-name">TIKTOK</div>
+        <div class="social-handle">@Yourcharm.TH</div>
+      </a>
+      <a href="https://instagram.com/yourcharm.th" target="_blank" class="social-card">
+        <div class="social-icon">📸</div>
+        <div class="social-name">INSTAGRAM</div>
+        <div class="social-handle">@Yourcharm.TH</div>
+      </a>
+      <a href="https://lin.ee/YJSqRHM" target="_blank" class="social-card">
+        <div class="social-icon">💚</div>
+        <div class="social-name">LINE</div>
+        <div class="social-handle">@Yourcharm</div>
+      </a>
+    </div>
+
+    <div style="text-align:center; margin-top:40px;">
+      <button class="cta-btn" onclick="showPage('builder')">✨ เริ่มออกแบบสร้อย</button>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-brand">YourCharm</div>
+    <div class="foot-tag">G O O D   T H I N G S   A R E   C O M I N G</div>
+    <div class="foot-copy">© 2026 YourCharm · Italian Charm Custom-made</div>
+  </footer>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════ BUILDER PAGE ════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="page" id="page-builder">
+
+  <div class="container" id="loadingContainer">
+    <div class="loading-screen" id="loadingScreen" style="grid-column:1/-1;">
+      <div class="spinner"></div>
+      <p id="loadingText">🍀 กำลังโหลดข้อมูลชาร์ม...</p>
+    </div>
+  </div>
+
+  <div class="container" id="appContainer" style="display:none;">
+    <div class="preview-area">
+      <div class="builder-header-actions">
+        <div>
+          <div class="preview-title">🍀 ออกแบบสร้อยข้อมือของคุณ</div>
+          <div class="preview-subtitle">เลือกขนาด → คลิกชาร์ม → คลิกตำแหน่งบนสร้อย</div>
+        </div>
+        <button class="refresh-mini" id="refreshBtn" onclick="loadCharms(true)">🔄 รีเฟรช</button>
+      </div>
+
+      <div class="size-selector">
+        <label for="size">ขนาดข้อมือ</label>
+        <select id="size">
+          <option value="16">14.0-15.1 cm (16 ชิ้น)</option>
+          <option value="18">15.2-16.1 cm (18 ชิ้น)</option>
+          <option value="19">16.2-17.1 cm (19 ชิ้น)</option>
+          <option value="20" selected>17.2-18.1 cm (20 ชิ้น)</option>
+          <option value="21">18.1-19.1 cm (21 ชิ้น)</option>
+          <option value="22">19.2-20.1 cm (22 ชิ้น)</option>
+          <option value="23">20.2-21.1 cm (23 ชิ้น)</option>
+          <option value="24">21.2-23.1 cm (24 ชิ้น)</option>
+        </select>
+      </div>
+
+      <div class="watch-warning" id="watchWarning">
+        ⚠️ <strong>คุณเลือกหน้าปัดนาฬิกาแล้ว</strong> — ตามกฎของร้าน หากเพิ่มหน้าปัดนาฬิกา ต้องลดจำนวนชาร์มลง 5 ชิ้นจากขนาดข้อมือค่ะ 🍀
+      </div>
+
+      <div class="selected-charm-bar" id="selectedBar">
+        <div class="preview" id="selectedPreview">✦</div>
+        <div class="text">เลือก: <strong id="selectedName">—</strong> · คลิกตำแหน่งที่ต้องการวาง</div>
+        <button class="cancel" onclick="cancelSelection()">ยกเลิก</button>
+      </div>
+
+      <div class="bracelet-wrapper">
+        <div class="bracelet" id="bracelet"></div>
+        <div class="slot-count" id="slotCount">20 ชิ้น · 👆 เลื่อนซ้าย-ขวาเพื่อดูทั้งหมด</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="saveImage()">💾 บันทึกรูป</button>
+        <button class="btn btn-clear" onclick="clearAll()">🗑️ ล้างทั้งหมด</button>
+      </div>
+
+      <div class="helper">
+        💡 <strong>วิธีใช้:</strong> คลิกชาร์มจากด้านขวา → คลิกตำแหน่งบนสร้อย · ชาร์มที่หมดจะคลิกไม่ได้
+      </div>
+
+      <div class="summary">
+        <div class="summary-row"><span>ชาร์มเงินเรียบ</span><span id="silverPrice">20 × 10 = 200 บาท</span></div>
+        <div class="summary-row"><span>ชาร์มมีลาย</span><span id="charmPrice">0 ชิ้น = 0 บาท</span></div>
+        <div class="summary-row total"><span>รวมทั้งหมด</span><span id="totalPrice">200 บาท</span></div>
+      </div>
+
+      <button class="btn-order" onclick="sendToLine()">🟢 สั่งซื้อทาง LINE</button>
+    </div>
+
+    <div class="library">
+      <h3><span>🎀 ชาร์มทั้งหมด</span><span class="count" id="charmCount">— ลาย</span></h3>
+      <input type="text" class="search-box" id="search" placeholder="ค้นหา เช่น ดอกไม้ หัวใจ A...">
+      <div class="filter-toggle">
+        <label><input type="checkbox" id="hideOutOfStock"> ซ่อนชาร์มที่หมด</label>
+      </div>
+      <div class="categories" id="categories"></div>
+      <div class="charm-grid" id="charmGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Modal ═══ -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3>📋 สรุป Design ของคุณ</h3>
+    <div class="modal-summary" id="modalSummary"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="copySummary()">📋 คัดลอก</button>
+      <button class="btn btn-line" onclick="goToLine()">🟢 ไป LINE</button>
+    </div>
+    <div class="note">เมื่อกด "ไป LINE" หน้าต่างใหม่จะเปิดขึ้น — กรุณา <strong>วางข้อความ (paste)</strong> ที่คัดลอกไว้ในแชท LINE เพื่อสั่งซื้อค่ะ 🍀</div>
+    <button class="btn btn-secondary" style="width:100%; margin-top:12px;" onclick="closeModal()">ปิด</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">บันทึกแล้ว</div>
+
+<script>
+  // ═══ CONFIG ═══
+  const SHEET_API = "https://script.google.com/macros/s/AKfycbxOjseWuSI1BF9FFIy_s1_KdTtlwZQ9TxLh9uG5PThp3NkHz1WncK7bKqorGdcdRqjteg/exec";
+  const LINE_URL = "https://lin.ee/YJSqRHM";
+  const SILVER_PRICE = 10;
+  const WATCH_CATEGORY = "หน้าปัดนาฬิกา"; // category name that triggers warning
+
+  // ═══ NAVIGATION ═══
+  function showPage(pageName) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + pageName).classList.add('active');
+    document.querySelectorAll('.menu-item[data-page]').forEach(m => {
+      m.classList.toggle('active', m.dataset.page === pageName);
+    });
+    document.getElementById('sideMenu').classList.remove('show');
+    document.getElementById('menuOverlay').classList.remove('show');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Load builder data first time it's opened
+    if (pageName === 'builder' && CHARMS.length === 0 && !isLoadingCharms) {
+      loadCharms();
+    }
+  }
+
+  function toggleMenu() {
+    document.getElementById('sideMenu').classList.toggle('show');
+    document.getElementById('menuOverlay').classList.toggle('show');
+  }
+
+  // ═══ STATE ═══
+  let CHARMS = [];
+  let bracelet = [];
+  let selectedCharm = null;
+  let activeCategory = 'all';
+  let searchTerm = '';
+  let hideOutOfStock = false;
+  let isLoadingCharms = false;
+  let watchWarningShown = false;
+
+  async function loadCharms(isRefresh = false) {
+    if (isLoadingCharms) return;
+    isLoadingCharms = true;
+    const refreshBtn = document.getElementById('refreshBtn');
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingText = document.getElementById('loadingText');
+
+    if (isRefresh) {
+      refreshBtn.classList.add('loading');
+      refreshBtn.textContent = '🔄 กำลังโหลด...';
+    }
+
+    try {
+      const res = await fetch(SHEET_API);
+      if (!res.ok) throw new Error('โหลดไม่สำเร็จ (HTTP ' + res.status + ')');
+      const data = await res.json();
+      if (!data.charms || !Array.isArray(data.charms) || data.charms.length === 0) {
+        throw new Error('ไม่พบข้อมูลชาร์ม - ตรวจสอบ Google Sheet');
+      }
+      CHARMS = data.charms;
+
+      document.getElementById('loadingContainer').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'grid';
+
+      const inStockCount = CHARMS.filter(c => c.inStock).length;
+      document.getElementById('charmCount').textContent = `${inStockCount}/${CHARMS.length} ลาย`;
+
+      renderCategories();
+      renderCharmGrid();
+
+      if (isRefresh) {
+        showToast('✓ อัปเดตเรียบร้อย — ' + inStockCount + ' ลายพร้อมส่ง');
+      } else {
+        resizeBracelet(parseInt(document.getElementById('size').value));
+      }
+    } catch (err) {
+      console.error(err);
+      if (isRefresh) {
+        showToast('⚠️ โหลดไม่สำเร็จ: ' + err.message);
+      } else {
+        loadingScreen.classList.add('error');
+        loadingText.innerHTML = `⚠️ เกิดข้อผิดพลาด<br><small style="font-size:12px;">${err.message}</small><br><br><button class="btn btn-secondary" onclick="loadCharms()">🔄 ลองใหม่</button>`;
+      }
+    } finally {
+      isLoadingCharms = false;
+      refreshBtn.classList.remove('loading');
+      refreshBtn.textContent = '🔄 รีเฟรช';
+    }
+  }
+
+  function init() {
+    document.getElementById('size').addEventListener('change', e => resizeBracelet(parseInt(e.target.value)));
+    document.getElementById('search').addEventListener('input', e => {
+      searchTerm = e.target.value.trim().toLowerCase();
+      renderCharmGrid();
+    });
+    document.getElementById('hideOutOfStock').addEventListener('change', e => {
+      hideOutOfStock = e.target.checked;
+      renderCharmGrid();
+    });
+  }
+
+  function resizeBracelet(count) {
+    bracelet = new Array(count).fill(null);
+    renderBracelet();
+    updateSummary();
+    checkWatchWarning();
+  }
+
+  function renderBracelet() {
+    const el = document.getElementById('bracelet');
+    el.innerHTML = '';
+    bracelet.forEach((charm, i) => {
+      const slot = document.createElement('div');
+      slot.className = 'charm-slot' + (charm ? ' has-charm' : '');
+      if (charm) {
+        slot.style.setProperty('--charm-bg', charm.color);
+        slot.style.setProperty('--charm-border', charm.color);
+        slot.innerHTML = `<span style="${String(charm.icon).length === 1 ? 'font-size:14px;font-weight:700;' : 'font-size:16px;'}">${charm.icon}</span><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
+      }
+      slot.addEventListener('click', () => placeCharm(i));
+      el.appendChild(slot);
+    });
+    document.getElementById('slotCount').textContent = `${bracelet.length} ชิ้น · 👆 เลื่อนซ้าย-ขวาเพื่อดูทั้งหมด`;
+  }
+
+  function renderCategories() {
+    const cats = ['all', ...new Set(CHARMS.map(c => c.category).filter(Boolean))];
+    const labels = { 'all': '🌟 ทั้งหมด' };
+    document.getElementById('categories').innerHTML = cats.map(cat => `
+      <span class="cat-tag ${cat === activeCategory ? 'active' : ''}" onclick="setCategory('${cat}')">${labels[cat] || cat}</span>
+    `).join('');
+  }
+
+  function setCategory(cat) {
+    activeCategory = cat;
+    renderCategories();
+    renderCharmGrid();
+  }
+
+  function renderCharmGrid() {
+    const filtered = CHARMS.filter(c => {
+      if (hideOutOfStock && !c.inStock) return false;
+      if (activeCategory !== 'all' && c.category !== activeCategory) return false;
+      if (searchTerm) {
+        const haystack = (c.name + ' ' + c.icon + ' ' + c.category).toLowerCase();
+        if (!haystack.includes(searchTerm)) return false;
+      }
+      return true;
+    });
+
+    const grid = document.getElementById('charmGrid');
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:30px 0;font-size:13px;">ไม่พบชาร์ม</div>';
+      return;
+    }
+    const lightColors = ['#FDF0F4','#FFF9E0','#EAF3EC','#C5DFF7','#E0C5F7','#F5F5F5','#FFF0F5','#F5E6D3','#D8D8DC'];
+    grid.innerHTML = filtered.map(c => {
+      const cls = 'charm-item' + (!c.inStock ? ' out-of-stock' : '');
+      const onclick = c.inStock ? `onclick="selectCharm('${c.id}')"` : '';
+      const iconColor = lightColors.includes(c.color) ? '#333' : c.color;
+      return `
+        <div class="${cls}" style="background:${c.color}20;" ${onclick} title="${c.name} — ${c.price} บาท${!c.inStock ? ' (หมด)' : ''}">
+          <div class="icon" style="color:${iconColor};">${c.icon}</div>
+          <div class="name">${c.name}</div>
+          <div class="price">${c.price}฿</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function selectCharm(id) {
+    const charm = CHARMS.find(c => c.id === id);
+    if (!charm || !charm.inStock) {
+      showToast('⚠️ ชาร์มนี้หมดแล้วค่ะ');
+      return;
+    }
+    selectedCharm = charm;
+    const bar = document.getElementById('selectedBar');
+    bar.classList.add('show');
+    const preview = document.getElementById('selectedPreview');
+    preview.style.background = selectedCharm.color;
+    preview.textContent = selectedCharm.icon;
+    document.getElementById('selectedName').textContent = selectedCharm.name + ' (' + selectedCharm.price + ' บาท)';
+    showToast('✦ เลือก ' + selectedCharm.name + ' แล้ว');
+  }
+
+  function cancelSelection() {
+    selectedCharm = null;
+    document.getElementById('selectedBar').classList.remove('show');
+  }
+
+  function placeCharm(idx) {
+    if (!selectedCharm) {
+      showToast('💡 เลือกชาร์มจากด้านขวาก่อนนะคะ');
+      return;
+    }
+    const wasWatch = bracelet.some(c => c && c.category === WATCH_CATEGORY);
+    bracelet[idx] = selectedCharm;
+    renderBracelet();
+    updateSummary();
+    checkWatchWarning(wasWatch);
+    showToast('✓ วาง ' + selectedCharm.name + ' แล้ว');
+  }
+
+  function removeCharm(e, idx) {
+    e.stopPropagation();
+    bracelet[idx] = null;
+    renderBracelet();
+    updateSummary();
+    checkWatchWarning();
+  }
+
+  function clearAll() {
+    if (!confirm('ล้างชาร์มทั้งหมดออก?')) return;
+    bracelet = bracelet.map(() => null);
+    renderBracelet();
+    updateSummary();
+    checkWatchWarning();
+  }
+
+  function checkWatchWarning(wasWatch = false) {
+    const hasWatch = bracelet.some(c => c && c.category === WATCH_CATEGORY);
+    const warning = document.getElementById('watchWarning');
+    warning.classList.toggle('show', hasWatch);
+    // Show toast first time watch is added
+    if (hasWatch && !wasWatch && !watchWarningShown) {
+      watchWarningShown = true;
+      showToast('⚠️ เพิ่มหน้าปัด — ต้องลดชาร์มลง 5 ชิ้นจากขนาดค่ะ');
+    }
+    if (!hasWatch) watchWarningShown = false;
+  }
+
+  function updateSummary() {
+    const silver = bracelet.filter(c => !c).length;
+    const charms = bracelet.filter(c => c);
+    const charmTotal = charms.reduce((s, c) => s + Number(c.price), 0);
+    const silverTotal = silver * SILVER_PRICE;
+    const total = silverTotal + charmTotal;
+    document.getElementById('silverPrice').textContent = `${silver} × ${SILVER_PRICE} = ${silverTotal} บาท`;
+    document.getElementById('charmPrice').textContent = `${charms.length} ชิ้น = ${charmTotal} บาท`;
+    document.getElementById('totalPrice').textContent = `${total} บาท`;
+  }
+
+  function generateSummary() {
+    const sizeSelect = document.getElementById('size');
+    const sizeText = sizeSelect.options[sizeSelect.selectedIndex].text;
+    const charms = bracelet.filter(c => c);
+    const silver = bracelet.filter(c => !c).length;
+    const total = silver * SILVER_PRICE + charms.reduce((s, c) => s + Number(c.price), 0);
+    const hasWatch = charms.some(c => c.category === WATCH_CATEGORY);
+
+    let txt = '🍀 สั่งซื้อจาก YourCharm\n━━━━━━━━━━━━━\n';
+    txt += `📏 ขนาดข้อมือ: ${sizeText}\n`;
+    if (hasWatch) txt += `⌚ มีหน้าปัดนาฬิกา (ต้องลดชาร์ม 5 ชิ้นจากขนาด)\n`;
+    txt += `\n`;
+    if (charms.length > 0) {
+      txt += '🎀 ชาร์มที่เลือก:\n';
+      const counts = {};
+      charms.forEach(c => {
+        if (!counts[c.name]) counts[c.name] = { count: 0, price: Number(c.price) };
+        counts[c.name].count++;
+      });
+      Object.entries(counts).forEach(([name, info]) => {
+        txt += `  • ${name} × ${info.count} = ${info.count * info.price} บาท\n`;
+      });
+    }
+    txt += `\n⚪ ชาร์มเงินเรียบ × ${silver} = ${silver * SILVER_PRICE} บาท\n━━━━━━━━━━━━━\n`;
+    txt += `💰 รวมทั้งหมด: ${total} บาท\n\nรบกวนแอดมินช่วยจัดให้ด้วยค่ะ 🍀`;
+    return txt;
+  }
+
+  function sendToLine() {
+    document.getElementById('modalSummary').textContent = generateSummary();
+    document.getElementById('modal').classList.add('show');
+  }
+
+  function copySummary() {
+    const txt = document.getElementById('modalSummary').textContent;
+    navigator.clipboard.writeText(txt).then(() => showToast('📋 คัดลอกเรียบร้อย'));
+  }
+
+  function goToLine() {
+    copySummary();
+    setTimeout(() => window.open(LINE_URL, '_blank'), 300);
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+  }
+
+  document.getElementById('modal').addEventListener('click', e => {
+    if (e.target.id === 'modal') closeModal();
+  });
+
+  function saveImage() {
+    showToast('💡 ใช้ screenshot บันทึกหน้าจอนี้ได้เลยค่ะ');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  init();
+</script>
+
+</body>
+</html>
