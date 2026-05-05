@@ -246,15 +246,14 @@
   .cat-tag:hover { background: var(--light-green); }
   .cat-tag.active { background: var(--green); color: white; border-color: var(--green); }
   .charm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; padding: 4px; }
-  .charm-item { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: var(--light-gray); border: 1.5px solid transparent; font-size: 10px; text-align: center; padding: 4px; transition: all 0.15s; user-select: none; position: relative; }
+  .charm-item { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: var(--light-gray); border: 1.5px solid transparent; font-size: 10px; text-align: center; padding: 0; transition: all 0.15s; user-select: none; position: relative; overflow: hidden; }
   .charm-item:hover { transform: translateY(-2px); box-shadow: 0 3px 6px rgba(0,0,0,0.1); border-color: var(--green); }
-  .charm-item .icon { font-size: 20px; margin-bottom: 2px; line-height: 1; }
-  .charm-item .name { font-size: 9px; color: var(--dark); line-height: 1.2; overflow: hidden; }
-  .charm-item .price { position: absolute; bottom: 1px; right: 2px; font-size: 8px; color: var(--green); background: white; padding: 1px 4px; border-radius: 6px; font-weight: 600; }
+  .charm-item .charm-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .charm-item .placeholder-name { font-size: 10px; color: var(--dark); line-height: 1.2; padding: 6px; text-align: center; overflow: hidden; word-break: break-word; }
+  .charm-item .price { position: absolute; bottom: 2px; right: 2px; font-size: 9px; color: white; background: rgba(58,125,68,0.9); padding: 1px 5px; border-radius: 6px; font-weight: 600; }
   .charm-item.out-of-stock { cursor: not-allowed; opacity: 0.45; filter: grayscale(80%); }
   .charm-item.out-of-stock:hover { transform: none; box-shadow: none; border-color: transparent; }
-  .charm-item.out-of-stock::after { content: 'หมด'; position: absolute; top: 4px; left: 4px; background: #c0607a; color: white; font-size: 8px; padding: 1px 5px; border-radius: 4px; font-weight: 600; }
-  .charm-item.out-of-stock .icon { text-decoration: line-through; text-decoration-color: rgba(192, 96, 122, 0.6); }
+  .charm-item.out-of-stock::after { content: 'หมด'; position: absolute; top: 4px; left: 4px; background: #c0607a; color: white; font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 600; z-index: 2; }
   .summary { background: var(--light-green); border-radius: 12px; padding: 14px 16px; margin-top: 16px; }
   .summary-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: var(--dark); }
   .summary-row.total { border-top: 1px dashed #c8e0cc; margin-top: 8px; padding-top: 8px; font-size: 16px; font-weight: 700; color: var(--dark-green); }
@@ -698,7 +697,13 @@
       if (charm) {
         slot.style.setProperty('--charm-bg', charm.color);
         slot.style.setProperty('--charm-border', charm.color);
-        slot.innerHTML = `<span style="${String(charm.icon).length === 1 ? 'font-size:14px;font-weight:700;' : 'font-size:16px;'}">${charm.icon}</span><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
+        if (charm.image) {
+          slot.innerHTML = `<img src="${charm.image}" alt="${charm.name}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;"><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
+        } else {
+          // No image: show short name
+          const shortName = String(charm.name).slice(0, 4);
+          slot.innerHTML = `<span style="font-size:9px;font-weight:700;padding:2px;">${shortName}</span><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
+        }
       }
       slot.addEventListener('click', () => placeCharm(i));
       el.appendChild(slot);
@@ -725,7 +730,7 @@
       if (hideOutOfStock && !c.inStock) return false;
       if (activeCategory !== 'all' && c.category !== activeCategory) return false;
       if (searchTerm) {
-        const haystack = (c.name + ' ' + c.icon + ' ' + c.category).toLowerCase();
+        const haystack = (c.name + ' ' + c.category).toLowerCase();
         if (!haystack.includes(searchTerm)) return false;
       }
       return true;
@@ -736,15 +741,20 @@
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:30px 0;font-size:13px;">ไม่พบชาร์ม</div>';
       return;
     }
-    const lightColors = ['#FDF0F4','#FFF9E0','#EAF3EC','#C5DFF7','#E0C5F7','#F5F5F5','#FFF0F5','#F5E6D3','#D8D8DC'];
     grid.innerHTML = filtered.map(c => {
       const cls = 'charm-item' + (!c.inStock ? ' out-of-stock' : '');
       const onclick = c.inStock ? `onclick="selectCharm('${c.id}')"` : '';
-      const iconColor = lightColors.includes(c.color) ? '#333' : c.color;
+      let inner;
+      if (c.image) {
+        inner = `<img class="charm-img" src="${c.image}" alt="${c.name}" loading="lazy" onerror="this.style.display='none';this.parentElement.innerHTML+='<div class=\\'placeholder-name\\'>${c.name}</div>';">`;
+      } else {
+        // No image: show name on pastel background
+        inner = `<div class="placeholder-name">${c.name}</div>`;
+      }
+      const bg = c.image ? 'white' : (c.color + '30');
       return `
-        <div class="${cls}" style="background:${c.color}20;" ${onclick} title="${c.name} — ${c.price} บาท${!c.inStock ? ' (หมด)' : ''}">
-          <div class="icon" style="color:${iconColor};">${c.icon}</div>
-          <div class="name">${c.name}</div>
+        <div class="${cls}" style="background:${bg};" ${onclick} title="${c.name} — ${c.price} บาท${!c.inStock ? ' (หมด)' : ''}">
+          ${inner}
           <div class="price">${c.price}฿</div>
         </div>
       `;
@@ -761,8 +771,13 @@
     const bar = document.getElementById('selectedBar');
     bar.classList.add('show');
     const preview = document.getElementById('selectedPreview');
-    preview.style.background = selectedCharm.color;
-    preview.textContent = selectedCharm.icon;
+    if (selectedCharm.image) {
+      preview.style.background = 'white';
+      preview.innerHTML = `<img src="${selectedCharm.image}" alt="${selectedCharm.name}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">`;
+    } else {
+      preview.style.background = selectedCharm.color || '#F5F5F5';
+      preview.innerHTML = `<span style="font-size:10px;color:#333;padding:2px;">${String(selectedCharm.name).slice(0,3)}</span>`;
+    }
     document.getElementById('selectedName').textContent = selectedCharm.name + ' (' + selectedCharm.price + ' บาท)';
     showToast('✦ เลือก ' + selectedCharm.name + ' แล้ว');
   }
