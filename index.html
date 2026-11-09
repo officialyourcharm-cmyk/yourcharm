@@ -1559,10 +1559,12 @@
     document.getElementById('size').addEventListener('change', e => resizeBracelet(parseInt(e.target.value)));
     document.getElementById('search').addEventListener('input', e => {
       searchTerm = e.target.value.trim().toLowerCase();
+      charmsShown = CHARMS_PER_PAGE;
       renderCharmGrid();
     });
     document.getElementById('hideOutOfStock').addEventListener('change', e => {
       hideOutOfStock = e.target.checked;
+      charmsShown = CHARMS_PER_PAGE;
       renderCharmGrid();
     });
   }
@@ -1639,9 +1641,14 @@
 
   function setCategory(cat) {
     activeCategory = cat;
+    charmsShown = CHARMS_PER_PAGE;
     renderCategories();
     renderCharmGrid();
   }
+
+  // Pagination: โหลดครั้งละ 60 ชาร์ม → ช่วยไม่ให้มือถือ crash
+  const CHARMS_PER_PAGE = 60;
+  let charmsShown = CHARMS_PER_PAGE;
 
   function renderCharmGrid() {
     const filtered = CHARMS.filter(c => {
@@ -1659,29 +1666,46 @@
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:30px 0;font-size:13px;">ไม่พบชาร์ม</div>';
       return;
     }
-    grid.innerHTML = filtered.map(c => {
+
+    // Show only first N charms (progressive loading)
+    const toShow = filtered.slice(0, charmsShown);
+    const hasMore = filtered.length > charmsShown;
+
+    const cardsHtml = toShow.map(c => {
       const cls = 'charm-item' + (!c.inStock ? ' out-of-stock' : '');
       const onclick = c.inStock ? `onclick="selectCharm('${c.id}')"` : '';
-      // Read zoom (default 1.0) and offset_y (default 0) from Sheet
       const zoom = parseFloat(c.zoom) || 1.0;
       const offsetY = parseFloat(c.offset_y) || 0;
       const transform = `scale(${zoom}) translateY(${offsetY}%)`;
       let inner;
       if (c.image) {
-        inner = `<img class="charm-img" src="${c.image}" alt="${c.name}" loading="lazy" style="transform:${transform};" onerror="this.style.display='none';this.parentElement.innerHTML+='<div class=\\'placeholder-name\\'>${c.name}</div>';">`;
+        // loading="lazy" + decoding="async" → ไม่โหลดทั้งหมดพร้อมกัน
+        inner = `<img class="charm-img" src="${c.image}" alt="${c.name}" loading="lazy" decoding="async" style="transform:${transform};" onerror="this.style.display='none';this.parentElement.innerHTML+='<div class=\\'placeholder-name\\'>${c.name}</div>';">`;
       } else {
-        // No image: show name on pastel background
         inner = `<div class="placeholder-name">${c.name}</div>`;
       }
       const bg = c.image ? 'white' : (c.color + '30');
-      return `
-        <div class="${cls}" style="background:${bg};" ${onclick} title="${c.name} — ${c.price} บาท${!c.inStock ? ' (หมด)' : ''}">
-          ${inner}
-          <div class="price">${c.price}฿</div>
-        </div>
-      `;
+      return `<div class="${cls}" style="background:${bg};" ${onclick} title="${c.name} — ${c.price} บาท${!c.inStock ? ' (หมด)' : ''}">${inner}<div class="price">${c.price}฿</div></div>`;
     }).join('');
+
+    const loadMoreHtml = hasMore ? `
+      <div style="grid-column:1/-1;text-align:center;padding:14px 0;">
+        <button onclick="loadMoreCharms()" style="background:var(--pink-hot,#F7A0B8);color:white;border:none;padding:12px 28px;border-radius:24px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(199,112,136,0.25);">
+          ⬇️ โหลดเพิ่ม (เหลือ ${filtered.length - charmsShown} ลาย)
+        </button>
+      </div>
+    ` : (filtered.length > CHARMS_PER_PAGE ? `<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:10px 0;font-size:12px;">— แสดงครบทั้ง ${filtered.length} ลาย —</div>` : '');
+
+    grid.innerHTML = cardsHtml + loadMoreHtml;
   }
+
+  function loadMoreCharms() {
+    charmsShown += CHARMS_PER_PAGE;
+    renderCharmGrid();
+  }
+
+  // Reset pagination when filter changes
+  const _origSetCategory = typeof setCategory !== 'undefined' ? setCategory : null;
 
   function selectCharm(id) {
     const charm = CHARMS.find(c => c.id === id);
