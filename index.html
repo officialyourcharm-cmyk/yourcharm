@@ -617,6 +617,35 @@
     outline-offset: 2px;
     box-shadow: 0 0 0 4px rgba(58,125,68,0.15);
   }
+  /* ═══ หน้าปัดนาฬิกา (แนวนอน 5 ช่อง) ═══ */
+  .charm-slot.watch-head {
+    background-image: none !important;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    width: 225px !important; /* 45px × 5 = 225px */
+    height: 50px;
+    margin-right: -180px; /* ล้ำเข้าไป 4 ช่อง (45 × 4) */
+    position: relative;
+    z-index: 3;
+    overflow: visible;
+  }
+  .charm-slot.watch-head .watch-img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+  /* Spacer = ช่องว่างใสๆ ไม่มีกรอบ ให้หน้าปัดทับ */
+  .charm-slot.watch-spacer {
+    background-image: none !important;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .charm-slot.watch-spacer:hover { transform: none; filter: none; }
   .charm-slot .remove-btn { position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; background: #c0607a; color: white; border-radius: 50%; font-size: 12px; line-height: 18px; text-align: center; cursor: pointer; display: none; border: 1px solid white; z-index: 5; font-weight: 700; }
   .charm-slot.has-charm:hover .remove-btn,
   .charm-slot.editing .remove-btn { display: block; }
@@ -1473,11 +1502,32 @@
       const slot = document.createElement('div');
       const isEditing = (i === selectedSlotIdx);
       slot.className = 'charm-slot' + (charm ? ' has-charm' : '') + (isEditing ? ' editing' : '');
+
+      // === หน้าปัดนาฬิกา (แนวนอน 5 ช่อง) ===
+      if (charm && charm.isWatchHead) {
+        slot.classList.add('watch-head');
+        slot.style.setProperty('--charm-bg', charm.color || '#F5F5F5');
+        if (charm.image) {
+          slot.innerHTML = `<img src="${charm.image}" alt="${charm.name}" class="watch-img"><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
+        } else {
+          slot.innerHTML = `<span style="font-size:11px;font-weight:700;color:#333;">⌚ ${String(charm.name).slice(0,8)}</span><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
+        }
+        slot.addEventListener('click', () => clickSlot(i));
+        el.appendChild(slot);
+        return;
+      }
+      // === Spacer ของหน้าปัด — hidden (รูปข้าม 5 ช่องแล้ว) ===
+      if (charm && charm.isWatchSpacer) {
+        slot.classList.add('watch-spacer');
+        slot.addEventListener('click', () => clickSlot(i));
+        el.appendChild(slot);
+        return;
+      }
+
       if (charm) {
         slot.style.setProperty('--charm-bg', charm.color);
         slot.style.setProperty('--charm-border', charm.color);
         if (charm.image) {
-          // รวมค่า zoom จาก Sheet (default) + user adjustments
           const sheetZoom = parseFloat(charm.zoom) || 1.0;
           const sheetOffsetY = parseFloat(charm.offset_y) || 0;
           const userZoom = userAdjustments[i]?.zoom ?? 1.0;
@@ -1487,7 +1537,6 @@
           const transform = `scale(${totalZoom}) translateY(${totalOffsetY}%)`;
           slot.innerHTML = `<img src="${charm.image}" alt="${charm.name}" style="transform:${transform};"><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
         } else {
-          // No image: show short name
           const shortName = String(charm.name).slice(0, 4);
           slot.innerHTML = `<span style="font-size:9px;font-weight:700;padding:2px;color:#333;">${shortName}</span><span class="remove-btn" onclick="removeCharm(event, ${i})">×</span>`;
         }
@@ -1588,6 +1637,43 @@
       const wasWatch = bracelet.some(c => c && c.category === WATCH_CATEGORY);
       const pairCount = Number(selectedCharm.pair) || 1;
 
+      const isWatch = selectedCharm.category === WATCH_CATEGORY;
+
+      // === หน้าปัดนาฬิกา → กิน 5 ช่อง (แนวนอน) ===
+      if (isWatch) {
+        const existingWatchIdx = bracelet.findIndex(c => c && c.isWatchHead);
+        if (existingWatchIdx !== -1 && existingWatchIdx !== idx) {
+          showToast('⚠️ มีหน้าปัดอยู่แล้ว — ลบของเก่าก่อนค่ะ');
+          return;
+        }
+        if (idx + 5 > bracelet.length) {
+          showToast('⚠️ พื้นที่ไม่พอ — หน้าปัดต้องใช้ 5 ช่องติดกัน');
+          return;
+        }
+        // เช็คว่า 5 ช่องถัดไปไม่มีหน้าปัดตัวอื่น
+        for (let i = 0; i < 5; i++) {
+          if (bracelet[idx + i] && bracelet[idx + i].isWatchHead && idx + i !== existingWatchIdx) {
+            showToast('⚠️ พื้นที่นี้มีหน้าปัดอื่นอยู่');
+            return;
+          }
+        }
+        // วางหน้าปัด: ช่องแรก = หัว, 4 ช่องถัดไป = spacer
+        bracelet[idx] = { ...selectedCharm, isWatchHead: true, watchStartIdx: idx };
+        for (let i = 1; i < 5; i++) {
+          bracelet[idx + i] = { ...selectedCharm, isWatchSpacer: true, watchStartIdx: idx };
+        }
+        userAdjustments[idx] = { zoom: 1.0, offsetY: 0 };
+        selectedSlotIdx = idx;
+        renderBracelet();
+        updateSummary();
+        checkWatchWarning(wasWatch);
+        showSlotControls(idx);
+        showToast('⌚ วางหน้าปัดเรียบร้อย — ใช้พื้นที่ 5 ช่อง');
+        selectedCharm = null;
+        document.getElementById('selectedBar').classList.remove('show');
+        return;
+      }
+
       // === ชาร์มคู่ (pair = 2) → วาง 2 ช่องห่างกัน 2 ช่อง ===
       if (pairCount === 2) {
         const idx2 = idx + 3; // ห่าง 2 ช่อง (idx, [ว่าง], [ว่าง], idx+3)
@@ -1610,7 +1696,11 @@
         return;
       }
 
-      // === ชาร์มปกติ ===
+      // === ชาร์มปกติ — ห้ามวางบน spacer/head ของหน้าปัด ===
+      if (bracelet[idx] && (bracelet[idx].isWatchSpacer || bracelet[idx].isWatchHead)) {
+        showToast('⚠️ ตำแหน่งนี้เป็นพื้นที่หน้าปัด — เลือกช่องอื่นค่ะ');
+        return;
+      }
       const isReplacing = bracelet[idx] !== null;
       bracelet[idx] = selectedCharm;
       userAdjustments[idx] = { zoom: 1.0, offsetY: 0 };
@@ -1622,6 +1712,12 @@
       showToast(isReplacing ? '✓ เปลี่ยนเป็น ' + selectedCharm.name : '✓ วาง ' + selectedCharm.name + ' แล้ว');
       selectedCharm = null;
       document.getElementById('selectedBar').classList.remove('show');
+    } else if (bracelet[idx] && bracelet[idx].isWatchSpacer) {
+      // คลิก spacer → เลือกหัวหน้าปัด
+      const headIdx = bracelet[idx].watchStartIdx;
+      selectedSlotIdx = headIdx;
+      renderBracelet();
+      showSlotControls(headIdx);
     } else if (bracelet[idx]) {
       // กรณี 3: ไม่มีชาร์มที่เลือก แต่ช่องนี้มีรูป → เลือก slot เพื่อปรับขนาด
       selectedSlotIdx = idx;
@@ -1686,9 +1782,19 @@
 
   function removeCharm(e, idx) {
     e.stopPropagation();
-    bracelet[idx] = null;
-    delete userAdjustments[idx];
-    if (selectedSlotIdx === idx) hideSlotControls();
+    // ถ้าเป็นหน้าปัด → ลบทั้ง 5 ช่อง
+    if (bracelet[idx] && (bracelet[idx].isWatchHead || bracelet[idx].isWatchSpacer)) {
+      const startIdx = bracelet[idx].watchStartIdx != null ? bracelet[idx].watchStartIdx : idx;
+      for (let i = 0; i < 5; i++) {
+        bracelet[startIdx + i] = null;
+        delete userAdjustments[startIdx + i];
+      }
+      if (selectedSlotIdx >= startIdx && selectedSlotIdx < startIdx + 5) hideSlotControls();
+    } else {
+      bracelet[idx] = null;
+      delete userAdjustments[idx];
+      if (selectedSlotIdx === idx) hideSlotControls();
+    }
     renderBracelet();
     updateSummary();
     checkWatchWarning();
@@ -1725,6 +1831,8 @@
     let charmTotal = 0;
     let uniqueCount = 0;
     charms.forEach(c => {
+      // หน้าปัด: นับเฉพาะ head, spacer ข้าม
+      if (c.isWatchSpacer) return;
       const pairCount = Number(c.pair) || 1;
       if (pairCount === 2) {
         // ชาร์มคู่: คิดครั้งเดียวต่อ SKU
