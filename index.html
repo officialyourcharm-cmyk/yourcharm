@@ -771,6 +771,88 @@
     .section-title { font-size: 26px; }
     .section { padding: 40px 16px; }
   }
+
+  /* ═══════════ MOBILE RESPONSIVE (≤ 768px) ═══════════ */
+  @media (max-width: 768px) {
+    /* Container: single column */
+    .container {
+      padding: 10px;
+      gap: 12px;
+      grid-template-columns: 1fr;
+    }
+
+    /* Header: smaller */
+    header { padding: 12px 14px; }
+    header .brand { font-size: 20px; }
+    header .tag { font-size: 8px; letter-spacing: 1.5px; }
+    .menu-btn { width: 36px; height: 36px; font-size: 16px; }
+
+    /* Bracelet wrapper: full width scrollable */
+    .bracelet-wrapper {
+      padding: 20px 10px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .charm-slot { width: 40px; height: 44px; flex-shrink: 0; }
+    .charm-slot.watch-head {
+      width: 200px !important;
+      margin-right: -160px;
+    }
+
+    /* Charm Library: grid เล็กลง 3-4 columns */
+    .charm-grid {
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 6px !important;
+      max-height: 60vh !important;
+    }
+    .charm-card { padding: 4px !important; }
+    .charm-card img, .charm-card .charm-img {
+      width: 100% !important;
+      height: 70px !important;
+      object-fit: contain !important;
+    }
+
+    /* Category tags: scrollable row */
+    .cat-tags-wrapper, .category-tags {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
+      padding-bottom: 6px;
+    }
+    .cat-tag {
+      flex-shrink: 0;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    /* Summary: compact */
+    .summary-row { font-size: 13px; }
+    .btn-order { font-size: 14px; padding: 12px; }
+
+    /* Size selector: full width */
+    #size, select { width: 100%; font-size: 14px; }
+
+    /* Section titles smaller */
+    .section-title { font-size: 22px; }
+    .section-title::before, .section-title::after { font-size: 18px; }
+
+    /* Hero mobile */
+    .hero { padding: 60px 14px 70px; }
+    .hero h1 { font-size: 36px; }
+    .hero-tag-pill { font-size: 22px; padding: 8px 24px 10px; }
+    .hero-sub { font-size: 14px; }
+    .hero-sticker { font-size: 28px !important; }
+
+    /* Builder header */
+    h2, h3 { font-size: 18px; }
+  }
+
+  /* Extra small mobile (≤ 400px) */
+  @media (max-width: 400px) {
+    .charm-slot { width: 36px; height: 40px; }
+    .charm-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .hero h1 { font-size: 30px; }
+  }
 </style>
 </head>
 <body>
